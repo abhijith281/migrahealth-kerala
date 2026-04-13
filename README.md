@@ -1,6 +1,6 @@
 # MigraHealth Kerala
 
-**SIH25083 — Smart India Hackathon 2025**
+
 Digital Health Record Management System for Migrant Workers in Kerala
 
 🔗 **Live Demo:** https://migrahealth-kerala.vercel.app
@@ -145,8 +145,4 @@ node seed/vaccines.js
 | Doctor | 9876543211 | demo1234 |
 | Admin | 9876543212 | demo1234 |
 
----
 
-## License
-
-Built for Smart India Hackathon 2025 — SIH25083
