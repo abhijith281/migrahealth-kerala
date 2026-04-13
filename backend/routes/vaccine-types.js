@@ -10,15 +10,27 @@ const {
 
 const { protect, authorize } = require('../middleware/auth');
 
-// All routes require authentication
-router.use(protect);
 
-// GET is accessible to all authenticated users
+// ======================
+// PUBLIC ROUTE
+// ======================
+
+// Anyone can access this
 router.get('/', getVaccineTypes);
 
-// Admin only routes
-router.post('/', authorize('admin'), createVaccineType);
-router.put('/:id', authorize('admin'), updateVaccineType);
-router.patch('/:id/deactivate', authorize('admin'), deactivateVaccineType);
+
+// ======================
+// PROTECTED ADMIN ROUTES
+// ======================
+
+// Only admin can create
+router.post('/', protect, authorize('admin'), createVaccineType);
+
+// Only admin can update
+router.put('/:id', protect, authorize('admin'), updateVaccineType);
+
+// Only admin can deactivate
+router.patch('/:id/deactivate', protect, authorize('admin'), deactivateVaccineType);
+
 
 module.exports = router;
