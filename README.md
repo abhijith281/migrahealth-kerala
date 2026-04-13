@@ -1,123 +1,152 @@
-# MigraHealth Kerala (SIH25083)
+# MigraHealth Kerala
+
+**SIH25083 — Smart India Hackathon 2025**
+Digital Health Record Management System for Migrant Workers in Kerala
+
+🔗 **Live Demo:** https://migrahealth-kerala.vercel.app
+📁 **Backend API:** https://migrahealth-api.onrender.com
+
+---
 
 ## Problem Statement
-Migrant workers in Kerala often face challenges in accessing consistent healthcare due to language barriers, lack of standardized health records, and mobility across different states. This leads to fragmented medical histories, delayed treatments, and difficulties in tracking immunization status. MigraHealth Kerala aims to bridge this gap by providing a centralized, multilingual Digital Health Record Management System tailored for migrant workers.
 
-## Features List
+Kerala has over 3.5 million migrant workers from states like West Bengal, Bihar,
+Odisha, and Uttar Pradesh. These workers face a critical gap in healthcare access —
+their medical history doesn't travel with them, they speak different languages than
+local doctors, and they lack persistent health records. MigraHealth Kerala solves this.
 
-### Patient Features
-- Multilingual interface (Hindi, Odia, Bengali, Malayalam, etc.)
-- Secure registration and login using Phone Number
-- View personal health records and upcoming appointments
-- Access immunization tracking and history
-- View assigned doctors and their instructions
+---
 
-### Doctor Features
-- Dashboard to manage assigned patients
-- Create and update health records (diagnoses, prescriptions, test results)
-- Schedule appointments with patients
-- Track patient immunization history
-- Multilingual translation support for clear communication
+## Features
 
-### Admin Features
-- Comprehensive dashboard with platform analytics
-- Manage users, doctors, and patients
-- Create and manage vaccine types
-- Assign patients to specific doctors
-- Monitor system usage and health record updates
+### For Patients
+- Register with phone number (no email required)
+- Store and view personal health records
+- Book appointments with assigned doctor
+- View immunization history and upcoming due vaccines
+- Full UI in Malayalam, Hindi, Bengali, Tamil, or Odia
+- Translate medical content (diagnosis, prescriptions) to their language
+
+### For Doctors
+- Dashboard with assigned patient list and quick stats
+- Per-patient detail page with health records, immunizations, appointments
+- Add verified health records and record immunizations
+- Confirm, complete, or cancel appointments
+
+### For Admin
+- System-wide stats and analytics dashboard
+- User management with role assignment
+- Doctor-patient assignment system
+- Health records per month bar chart
+
+---
 
 ## Tech Stack
 
-| Component | Technology | Description |
-|-----------|------------|-------------|
-| Frontend | React + Vite | Fast, modern UI development |
-| Backend | Node.js + Express | Scalable REST API |
-| Database | MongoDB + Mongoose | NoSQL database for flexible health records |
-| Authentication| JWT + HTTP-only Cookies| Secure, stateless authentication |
-| Styling | Tailwind CSS / Custom CSS | Responsive and accessible design |
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, Vite, React Router v6 |
+| State Management | React Context API (AuthContext, LanguageContext) |
+| Backend | Node.js, Express.js |
+| Database | MongoDB Atlas, Mongoose |
+| Authentication | JWT in httpOnly cookies |
+| Translation | Google Cloud Translation API |
+| Deployment | Vercel (frontend), Render (backend) |
+
+---
 
 ## Architecture Decisions
-- **Stateless Authentication**: Chose JWT stored in HTTP-only cookies to prevent XSS attacks while allowing seamless scaling across multiple backend instances.
-- **RESTful API Design**: Implemented a clear, resource-based API structure (`/api/patients`, `/api/records`) for maintainability.
-- **Role-Based Access Control (RBAC)**: Enforced strict access policies at the middleware level to ensure data privacy between Patients, Doctors, and Admins.
-- **Sparse Indexing in MongoDB**: Utilized sparse unique indexing for fields like email to allow optional inputs while maintaining uniqueness when provided.
-- **Vite & React Ecosystem**: Decided to use Vite instead of Create React App for significantly faster hot module replacement (HMR) and optimized production builds.
 
-## Database Schema Diagram
+- **JWT in httpOnly cookies** — prevents XSS attacks compared to localStorage
+- **Phone as primary login** — migrant workers may not have stable email
+- **Two-layer i18n** — static JSON for UI labels (instant), Google Translate API for medical content (on-demand)
+- **Role-based access control** — patient / doctor / admin with middleware-level enforcement
+- **Soft delete for vaccine types** — preserves historical immunization records
 
-```text
-+-------------------+       +--------------------+       +---------------------+
-|       User        |       |    HealthRecord    |       |     Appointment     |
-+-------------------+       +--------------------+       +---------------------+
-| _id (ObjectId)    |<--+   | _id (ObjectId)     |       | _id (ObjectId)      |
-| name (String)     |   |   | patient (ObjectId) |>--+   | patient (ObjectId)  |
-| phone (String)    |   +---| doctor (ObjectId)  |   |   | doctor (ObjectId)   |
-| password (Hash)   |       | diagnosis (String) |   +---| status (Enum)       |
-| role (Enum)       |       | prescription(Array)|       | date (Date)         |
-| language (String) |       | date (Date)        |       | notes (String)      |
-+-------------------+       +--------------------+       +---------------------+
-        ^                                                           |
-        |                   +--------------------+                  |
-        +-------------------|    Immunization    |                  |
-                            +--------------------+                  |
-                            | _id (ObjectId)     |                  |
-                            | patient (ObjectId) |>-----------------+
-                            | vaccine (ObjectId) |
-                            | dateAdministered   |
-                            | nextDueDate (Date) |
-                            +--------------------+
+---
+
+## Database Schema
+
+```
+User ──────────────── PatientProfile
+  |                        |
+  |                   assignedDoctor
+  |                        |
+  └──── DoctorProfile ─────┘
+              |
+         patients[]
+
+HealthRecord → patient (User), doctor (User)
+Immunization → patient (User), vaccineType (VaccineType)
+Appointment  → patient (User), doctor (User)
 ```
 
-## Local Setup Instructions
+---
 
-1. **Clone the repository**
-   ```bash
-   git clone <repo-url>
-   cd migral-health-kerala
-   ```
+## Local Setup
 
-2. **Backend Setup**
-   ```bash
-   cd backend
-   npm install
-   cp .env.example .env
-   # Update the .env file with your local MongoDB URI
-   npm run dev
-   ```
+### Prerequisites
+- Node.js 18+
+- MongoDB Atlas account
+- Google Cloud account (for Translation API)
 
-3. **Frontend Setup**
-   ```bash
-   cd ../frontend
-   npm install
-   cp .env.example .env
-   # Ensure VITE_API_URL is set correctly
-   npm run dev
-   ```
+### Backend
+```bash
+cd backend
+npm install
+cp .env.example .env
+# Fill in MONGO_URI, JWT_SECRET, GOOGLE_TRANSLATE_API_KEY
+npm run dev
+```
+
+### Frontend
+```bash
+cd frontend
+npm install
+cp .env.example .env
+# Set VITE_API_URL=http://localhost:5000/api
+npm run dev
+```
+
+### Seed Database
+```bash
+cd backend
+node seed/vaccines.js
+```
+
+---
 
 ## API Endpoints
 
-| Endpoint | Method | Description | Access |
-|----------|--------|-------------|--------|
-| `/api/auth/register` | POST | Register a new user | Public |
-| `/api/auth/login` | POST | Authenticate user & get token| Public |
-| `/api/auth/me` | GET | Get current logged-in user | Private |
-| `/api/patients` | GET | Get all patients | Admin/Doctor |
-| `/api/records` | GET | Get health records | Private |
-| `/api/appointments`| POST | Create an appointment | Private |
-| `/api/vaccine-types`| GET | List all available vaccines | Public/Private |
+| Method | Route | Access | Description |
+|--------|-------|--------|-------------|
+| POST | /api/auth/register | Public | Register new user |
+| POST | /api/auth/login | Public | Login |
+| GET | /api/auth/me | Auth | Get current user |
+| GET | /api/patients/profile | Patient | Get own profile |
+| PUT | /api/patients/profile | Patient | Update profile |
+| POST | /api/records | Patient/Doctor | Create health record |
+| GET | /api/records | Auth | Get records (role-filtered) |
+| POST | /api/appointments | Patient | Book appointment |
+| PATCH | /api/appointments/:id/status | Auth | Update appointment status |
+| POST | /api/immunizations | Doctor | Record immunization |
+| GET | /api/immunizations/upcoming | Auth | Upcoming due vaccines |
+| POST | /api/translate | Auth | Translate text |
+| GET | /api/admin/stats | Admin | System statistics |
+| PATCH | /api/admin/patients/:id/assign-doctor | Admin | Assign doctor to patient |
+
+---
 
 ## Demo Credentials
 
-| Role | Phone Number | Password |
-|------|--------------|----------|
-| Admin | 9999999999 | 123456 |
-| Doctor| 8888888888 | 123456 |
-| Patient| 7777777777 | 123456 |
+| Role | Phone | Password |
+|------|-------|----------|
+| Patient | 9876543210 | demo1234 |
+| Doctor | 9876543211 | demo1234 |
+| Admin | 9876543212 | demo1234 |
 
-## Resume Bullet Points
+---
 
-- Developed a full-stack MERN (MongoDB, Express, React, Node.js) platform catering to migrant workers, solving critical healthcare accessibility issues.
-- Implemented robust Role-Based Access Control (RBAC) supporting Patient, Doctor, and Admin workflows with tailored dashboards and functional capabilities.
-- Engineered secure authentication utilizing JSON Web Tokens (JWT) and HTTP-only cookies, safeguarding sensitive medical data against XSS vulnerabilities.
-- Integrated multilingual support (Hindi, Odia, Bengali, Malayalam) driving user adoption among non-native speakers.
-- Architected a scalable RESTful backend API capable of managing complex relationships between users, health records, immunizations, and appointments.
+## License
+
+Built for Smart India Hackathon 2025 — SIH25083
